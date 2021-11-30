@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+option go_package= "/src";
+
+message SendEmailRequest {
+    repeated string receipients = 1;
+    string subject = 2;
+    string body = 3;
+    repeated Attachment attachments = 4;
+}
+
+message Attachment {
+    string base64Data = 1;
+}
+
+message ResponseMessage {
+    bool success = 1;
+    string ack = 2;
+}
+
+service EmailService {
+    rpc SendEmail(SendEmailRequest) returns(ResponseMessage) {}
+}
