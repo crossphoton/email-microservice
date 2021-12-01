@@ -10,6 +10,7 @@ import (
 	grpc "google.golang.org/grpc"
 )
 
+// Config stores service configuration
 type Config struct {
 	Port int `mapstructure:"PORT"`
 }

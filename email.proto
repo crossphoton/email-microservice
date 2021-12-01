@@ -4,6 +4,7 @@ option go_package= "/src";
 
 message Attachment {
     string base64Data = 1;
+    string filename = 2;
 }
 
 message ResponseMessage {
@@ -32,9 +33,10 @@ message RawSendEmailRequest {
 
 message SendEmailWithTemplateRequest {
     Recipients recipients = 1;
-    string template_name = 2;
-    repeated Attachment attachments = 3;
-    map<string, string> template_params = 4;
+    string subject = 2;
+    string template_name = 3;
+    repeated Attachment attachments = 4;
+    map<string, string> template_params = 5;
 }
 
 service EmailService {

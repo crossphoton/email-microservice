@@ -9,6 +9,7 @@ import (
 	mail "github.com/xhit/go-simple-mail/v2"
 )
 
+// Config stores SMTP configurations to use for sending emails
 type Config struct {
 	SMTPHost     string `mapstructure:"SMTP_HOST"`
 	SMTPPort     int    `mapstructure:"SMTP_PORT"`
@@ -16,9 +17,7 @@ type Config struct {
 	SMTPPassword string `mapstructure:"SMTP_PASSWORD"`
 }
 
-var (
-	config Config
-)
+var config Config
 
 func init() {
 	viper.AddConfigPath(".")

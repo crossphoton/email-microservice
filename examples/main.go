@@ -1,14 +1,40 @@
 package main
 
 import (
+	"context"
+	"log"
+
 	"github.com/crossphoton/email-microservice/src"
 )
 
 func main() {
+	// Template request
+	templateRequest := src.SendEmailWithTemplateRequest{
+		Recipients: &src.Recipients{
+			To: []string{
+				"Aditya Agrawal<adiag1200@gmail.com>",
+			},
+		},
+		TemplateName: "email-confirm",
+		TemplateParams: map[string]string{
+			"UserName":           "Aditya Agrawal",
+			"ConfirmAccountLink": "https://google.com",
+			"UnsubscribeLink":    "https://google.com/unsubscribe",
+		},
+		Subject: "This is from a template",
+	}
+
+	res, err := client.SendEmailWithTemplate(context.Background(), &templateRequest)
+	if err != nil {
+		log.Println("error: ", err)
+	}
+
+	log.Print(res)
+
 	// Raw request
 	rawEmailRequest := src.RawSendEmailRequest{
 		Recipients: []string{
-			"email@e.crossphoton.tech",
+			"Aditya Agrawal<email@e.crossphoton.tech>",
 			"spam@e.crossphoton.tech",
 			"support@e.crossphoton.tech",
 		},
@@ -20,11 +46,10 @@ func main() {
 	emailRequest := src.SendEmailRequest{
 		Recipients: &src.Recipients{
 			To: []string{
-				"test",
-				"email@e.crossphoton.tech",
+				"Aditya Agrawal<email@e.crossphoton.tech>",
 			},
 			Cc: []string{
-				"spam@e.crossphoton.tech",
+				"Spam Address<spam@e.crossphoton.tech>",
 			},
 			Bcc: []string{
 				"support@e.crossphoton.tech",
