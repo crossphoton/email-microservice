@@ -15,6 +15,10 @@ type EmailServer struct {
 }
 
 func (s *EmailServer) SendEmail(ctx context.Context, req *SendEmailRequest) (*ResponseMessage, error) {
+	if err := req.Recipients.validate(); err != nil {
+		return nil, err
+	}
+
 	email := mail.NewMSG()
 
 	// Add receivers
@@ -47,6 +51,10 @@ func (s *EmailServer) SendEmail(ctx context.Context, req *SendEmailRequest) (*Re
 }
 
 func (s *EmailServer) SendRawEmail(ctx context.Context, req *RawSendEmailRequest) (*ResponseMessage, error) {
+	if err := validateEmails(req.Recipients); err != nil {
+		return nil, err
+	}
+
 	// Sending email
 	err := mail.SendMessage(config.SMTPEmail, req.Recipients, string(req.Body), smtpClient)
 	if err != nil {
@@ -58,5 +66,9 @@ func (s *EmailServer) SendRawEmail(ctx context.Context, req *RawSendEmailRequest
 }
 
 func (s *EmailServer) SendEmailWithTemplate(ctx context.Context, req *SendEmailWithTemplateRequest) (*ResponseMessage, error) {
+	if err := req.Recipients.validate(); err != nil {
+		return nil, err
+	}
+
 	return nil, fmt.Errorf("not implemented")
 }
