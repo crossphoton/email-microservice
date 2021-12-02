@@ -1,11 +1,11 @@
 package src
 
 import (
-	"crypto/tls"
 	"log"
+	"os"
+	"strconv"
 	"time"
 
-	"github.com/spf13/viper"
 	mail "github.com/xhit/go-simple-mail/v2"
 )
 
@@ -18,22 +18,13 @@ type Config struct {
 }
 
 var config Config
+var err error
 
 func init() {
-	viper.AddConfigPath(".")
-	viper.AddConfigPath("../")
-	viper.SetConfigType("env")
-	viper.SetConfigName("app")
-	viper.AutomaticEnv()
-	err := viper.ReadInConfig()
-	if err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-		} else {
-			log.Fatalf("error reading config file: %v", err)
-		}
-	}
-
-	viper.Unmarshal(&config)
+	config.SMTPEmail = os.Getenv("SMTP_EMAIL")
+	config.SMTPHost = os.Getenv("SMTP_HOST")
+	config.SMTPPassword = os.Getenv("SMTP_PASSWORD")
+	config.SMTPPort, err = strconv.Atoi(os.Getenv("SMTP_PORT"))
 
 	smtpServer := mail.NewSMTPClient()
 	smtpServer.Host = config.SMTPHost
@@ -45,7 +36,7 @@ func init() {
 	smtpServer.KeepAlive = true
 	smtpServer.ConnectTimeout = 10 * time.Second
 	smtpServer.SendTimeout = 10 * time.Second
-	smtpServer.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+	// smtpServer.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 
 	smtpClient, err = smtpServer.Connect()
 	if err != nil {

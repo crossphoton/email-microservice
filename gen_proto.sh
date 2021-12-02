@@ -1,1 +1,1 @@
-protoc --go_out=. --go-grpc_out=. email.proto
+protoc --go_out=. --go-grpc_out=. email.proto health.proto
