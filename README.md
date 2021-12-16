@@ -123,10 +123,10 @@ GNU General Public License v3.0
   - base64data *string* - Base64 encoded data of attachment.
   - filename *string* - Name of attachment.
 
-## Dependencies
+<!-- ## Dependencies
 
 - [simple-email-service](https://github.com/xhit/go-simple-mail)
 - [gRPC](https://google.golang.org/grpc)
 - [protobuf](https://google.golang.org/protobuf)
 - [prometheus](https://github.com/prometheus/client_golang)
-- [go-grpc-prometheus](https://github.com/grpc-ecosystem/go-grpc-prometheus)
+- [go-grpc-prometheus](https://github.com/grpc-ecosystem/go-grpc-prometheus) -->
