@@ -13,8 +13,6 @@ func main() {
 		log.Print(res)
 	}
 
-	log.Print(res)
-
 	// Raw email request
 	res, err = RawEmail()
 	if err != nil {

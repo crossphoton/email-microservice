@@ -14,7 +14,7 @@ func sendEmailStd(req *src.SendEmailRequest) (*src.ResponseMessage, error) {
 
 	res, err := client.SendEmail(ctx, req)
 	if err != nil {
-		log.Fatalf("request failed: %v", err)
+		log.Printf("request failed: %v", err)
 		return nil, err
 	}
 

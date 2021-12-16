@@ -35,7 +35,7 @@ Send Templated emails (templates should exist beforehand):
 
 ### **As a service**
 
-### *Server Environment Variables*
+### *Environment Variables*
 ```
 SMTP_HOST:                  SMTP host
 SMTP_PORT:                  SMTP port
@@ -45,10 +45,30 @@ PORT:                       Port to listen on
 PROMETHEUS_PORT:            Port to expose metrics on
 ```
 
+### *Flags*
+```
+  -disableEmail
+        disable email sending
+  -help
+        show help
+  -port int
+        port to listen (default 5555)
+  -prometheusPort int
+        port to listen for prometheus (default 9090)
+  -smtpEmail string
+        SMTP email
+  -smtpHost string
+        SMTP host
+  -smtpPassword string
+```
+
 ### *Templates*
 For templates to be used in the email, they should be stored in the `./templates` directory relative to the binary. Naming scheme for files is `<template_name>.html`, where `template_name` is the name of the template to be used by the client.
 
-> For docker workdir in /app, hence, templates should be stored in `/app/templates`
+Templated are parsed using `html/template` package.
+- `{{.}}` - prints the value of the variable
+
+> For docker, workdir in `/app`, hence, templates should be stored in `/app/templates` directory.
 
 ### Docker
 ```
@@ -72,17 +92,20 @@ Generate the client code using the proto file [email.proto](./email.proto)
 
 > In examples directory run `./gen_proto.sh`
 
-# Prometheus
+# Additional Parts
 
-Port `9090` is exposed for Prometheus metrics. Can be changed using [environment variable](#server-environment-variables).
+- **Prometheus** : Port `9090` is exposed for Prometheus metrics. Can be changed using [environment variable](#server-environment-variables).
+- **Logging** - [go.uber.org/zap](go.uber.org/zap) is used for logging.
+- **GRPC Middleware** - validation, prometheus, zap
+
+## TODO
+- Tracing
+- Graceful shutdown
+- 
 
 ## License
 
 GNU General Public License v3.0
-
-## Authors
-
-- [Aditya Agrawal (crossphoton)](https://github.com/crossphoton)
 
 
 ## Types

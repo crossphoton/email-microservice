@@ -1,8 +1,8 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -10,23 +10,44 @@ import (
 
 	healthpb "github.com/crossphoton/email-microservice/health"
 	"github.com/crossphoton/email-microservice/src"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
+
+	// grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
+	grpc_validator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.uber.org/zap"
 	grpc "google.golang.org/grpc"
 )
 
 // Config stores service configuration
 type Config struct {
-	Port           int `mapstructure:"PORT"`
-	PrometheusPort int `mapstructure:"PROMETHEUS_PORT"`
+	Port           int    `mapstructure:"PORT"`
+	PrometheusPort int    `mapstructure:"PROMETHEUS_PORT"`
+	Environment    string `mapstructure:"ENVIRONMENT"`
 }
 
 var config Config
+var logger *zap.Logger
 
 func init() {
+	// From environment variables
 	config.Port, _ = strconv.Atoi(os.Getenv("PORT"))
 	config.PrometheusPort, _ = strconv.Atoi(os.Getenv("PROMETHEUS_PORT"))
+
+	// From command line
+	flag.IntVar(&config.Port, "port", 5555, "port to listen")
+	flag.IntVar(&config.PrometheusPort, "prometheusPort", 9090, "port to listen for prometheus")
+	flag.StringVar(&config.Environment, "environment", "development", "environment")
+	help := flag.Bool("help", false, "show help")
+	flag.Parse()
+
+	if *help {
+		flag.PrintDefaults()
+		os.Exit(0)
+	}
 }
 
 func main() {
@@ -36,11 +57,46 @@ func main() {
 		Addr:    fmt.Sprintf(":%d", config.PrometheusPort),
 	}
 
-	// Registering service
+	// Create logger based on environment
+	var err error
+	if config.Environment == "production" {
+		logger, err = zap.NewProduction()
+	} else {
+		logger, err = zap.NewDevelopment(
+			zap.AddStacktrace(zap.ErrorLevel),
+			zap.AddStacktrace(zap.InfoLevel),
+			zap.AddStacktrace(zap.FatalLevel),
+			zap.AddStacktrace(zap.DebugLevel),
+			zap.AddStacktrace(zap.DPanicLevel),
+		)
+	}
+	if err != nil {
+		panic(err)
+	}
+	defer logger.Sync()
+
+	// Registering service with middlewares
 	server := grpc.NewServer(
-		grpc.UnaryInterceptor(grpc_prometheus.UnaryServerInterceptor),
-		grpc.StreamInterceptor(grpc_prometheus.StreamServerInterceptor),
+		grpc.UnaryInterceptor(
+			grpc_middleware.ChainUnaryServer(
+				grpc_prometheus.UnaryServerInterceptor,
+				grpc_zap.UnaryServerInterceptor(logger),
+				grpc_validator.UnaryServerInterceptor(),
+				// grpc_opentracing.UnaryServerInterceptor(),
+			),
+		),
+		grpc.StreamInterceptor(
+			grpc_middleware.ChainStreamServer(
+				grpc_prometheus.StreamServerInterceptor,
+				grpc_zap.StreamServerInterceptor(logger),
+				grpc_validator.StreamServerInterceptor(),
+				// grpc_opentracing.StreamServerInterceptor(),
+			),
+		),
 	)
+
+	// Initialize mail service
+	src.Initialize(logger)
 
 	// Initialize all metrics.
 	grpcMetrics := grpc_prometheus.NewServerMetrics()
@@ -48,10 +104,10 @@ func main() {
 
 	// Start your http server for prometheus.
 	go func() {
-		log.Println("starting server for prometheus at ", config.PrometheusPort)
+		logger.Info("starting server for prometheus", zap.Int("port", config.PrometheusPort))
 
 		if err := httpServer.ListenAndServe(); err != nil {
-			log.Fatal("unable to start a http server for prometheus")
+			logger.Error("failed to start http server for prometheus", zap.Error(err))
 		}
 	}()
 
@@ -62,13 +118,13 @@ func main() {
 	// Listening to port
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", config.Port))
 	if err != nil {
-		log.Fatalf("cannot listen on %d : %v", config.Port, err)
+		logger.Fatal("cannot listen on port", zap.Int("port", config.Port), zap.Error(err))
 	}
 	defer listener.Close()
 
 	// Starting server
-	log.Printf("starting server on %v", config.Port)
+	logger.Info("starting service", zap.Int("port", config.Port))
 	if err := server.Serve(listener); err != nil {
-		log.Fatalf("cannor start server: %v", err)
+		logger.Fatal("failed to start server", zap.Error(err))
 	}
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"github.com/crossphoton/email-microservice/examples/src"
@@ -14,7 +13,6 @@ func sendEmailWithTemplate(req *src.SendEmailWithTemplateRequest) (*src.Response
 
 	res, err := client.SendEmailWithTemplate(ctx, req)
 	if err != nil {
-		log.Fatalf("request failed: %v", err)
 		return nil, err
 	}
 

@@ -3,10 +3,10 @@ package src
 import (
 	"context"
 	"fmt"
-	"log"
 
 	healthpb "github.com/crossphoton/email-microservice/health"
 	mail "github.com/xhit/go-simple-mail/v2"
+	"go.uber.org/zap"
 )
 
 var smtpClient *mail.SMTPClient
@@ -20,6 +20,20 @@ type EmailServer struct {
 
 func (s *EmailServer) Check(ctx context.Context, req *healthpb.HealthCheckRequest) (*healthpb.HealthCheckResponse, error) {
 	return &healthpb.HealthCheckResponse{Status: healthpb.HealthCheckResponse_SERVING}, nil
+}
+
+func sendEmailFromMessage(message *mail.Email) error {
+	if config.disableEmail {
+		return nil
+	}
+
+	err := message.Send(smtpClient)
+	if err != nil {
+		logger.Error("error sending email", zap.Error(err))
+		return fmt.Errorf("error sending email: %v", err)
+	}
+
+	return nil
 }
 
 // SendEmail sends an email with given Recipients, Subject, Body, .....
@@ -55,9 +69,8 @@ func (s *EmailServer) SendEmail(ctx context.Context, req *SendEmailRequest) (*Re
 	}
 
 	// Send the email
-	err := email.Send(smtpClient)
+	err := sendEmailFromMessage(email)
 	if err != nil {
-		log.Printf("err: error sending email: %v", err)
 		return nil, fmt.Errorf("error sending email: %v", err)
 	}
 
@@ -71,9 +84,12 @@ func (s *EmailServer) SendRawEmail(ctx context.Context, req *RawSendEmailRequest
 	}
 
 	// Sending email
-	err := mail.SendMessage(config.SMTPEmail, req.Recipients, string(req.Body), smtpClient)
+	var err error = nil
+	if !config.disableEmail {
+		err = mail.SendMessage(config.SMTPEmail, req.Recipients, string(req.Body), smtpClient)
+	}
 	if err != nil {
-		log.Printf("err: error sending email: %v", err)
+		logger.Error("error sending email", zap.Error(err))
 		return nil, fmt.Errorf("error sending email: %v", err)
 	}
 
@@ -116,9 +132,8 @@ func (s *EmailServer) SendEmailWithTemplate(ctx context.Context, req *SendEmailW
 	}
 
 	// Send the email
-	err = email.Send(smtpClient)
+	err = sendEmailFromMessage(email)
 	if err != nil {
-		log.Printf("err: error sending email: %v", err)
 		return nil, fmt.Errorf("error sending email: %v", err)
 	}
 
