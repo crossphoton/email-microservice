@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: email-service
+spec:
+  selector:
+    matchLabels:
+      app: email-service
+  template:
+    metadata:
+      labels:
+        app: email-service
+    spec:
+      containers:
+      - name: server
+        image: crossphoton/email-microservice:v1.0.0
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "250m"
+        env:
+          - name: PORT
+            value: "5555"
+          - name: PROMETHEUS_PORT
+            value: "9090"
+          - name: ENVIRONMENT
+            value: "production"
+          # - name: DISABLE_EMAIL
+          #   value: "true"
+
+        envFrom:
+          - secretRef:
+              name: smtp-secret
+        readinessProbe:
+          periodSeconds: 5
+          exec:
+            command: ["/bin/grpc_health_probe", "-addr=:5555"]
+        livenessProbe:
+          periodSeconds: 5
+          exec:
+            command: ["/bin/grpc_health_probe", "-addr=:5555"]
+        ports:
+        - containerPort: 5555
+        - containerPort: 9090
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: email-service
+spec:
+  type: ClusterIP
+  selector:
+    app: email-service
+  ports:
+  - name: grpc
+    port: 5555
+    targetPort: 5555
+  - name: prometheus
+    port: 9090
+    targetPort: 9090

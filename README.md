@@ -72,12 +72,20 @@ Templated are parsed using `html/template` package.
 
 ### Docker
 ```
-docker run -d --name email-microservice --env-file app.env -p 5555:5555 crossphoton/email-microservice
+docker run -d --name email-microservice --env-file app.env -p 5555:5555 crossphoton/email-microservice:v1.0.0
 ```
 
 ### Kubernetes
 
-> TODO
+Use the [deployment.yml](manifest/deployment.yml) file for the service deployment.
+
+This requires a `smtp-secret` secret to be created which contains the following:
+- `SMTP_HOST` - SMTP host
+- `SMTP_PORT` - SMTP port
+- `SMTP_EMAIL` - SMTP email
+- `SMTP_PASSWORD` - SMTP password
+
+A template of this is also provided (See [secrets.yml](manifest/secrets.yml))
 
 ### Locally
 1. Clone the repository
@@ -101,6 +109,7 @@ Generate the client code using the proto file [email.proto](./email.proto)
 ## TODO
 - Tracing
 - Graceful shutdown
+- Switch to Uber Go Style. [See the guide here](https://github.com/uber-go/guide/blob/master/style.md).
 - 
 
 ## License
