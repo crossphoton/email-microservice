@@ -24,11 +24,12 @@ message SendEmailRequest {
     string body = 3;
     string contentType = 4;
     repeated Attachment attachments = 5;
+    map<string, string> headers = 6;
 }
 
 message RawSendEmailRequest {
     repeated string recipients = 1;
-    bytes body = 3;
+    bytes body = 2;
 }
 
 message SendEmailWithTemplateRequest {
@@ -37,6 +38,7 @@ message SendEmailWithTemplateRequest {
     string template_name = 3;
     repeated Attachment attachments = 4;
     map<string, string> template_params = 5;
+    map<string, string> headers = 6;
 }
 
 service EmailService {

@@ -36,6 +36,12 @@ func sendEmailFromMessage(message *mail.Email) error {
 	return nil
 }
 
+func addHeaders(email *mail.Email, headers map[string]string) {
+	for k, v := range headers {
+		email.AddHeader(k, v)
+	}
+}
+
 // SendEmail sends an email with given Recipients, Subject, Body, .....
 func (s *EmailServer) SendEmail(ctx context.Context, req *SendEmailRequest) (*ResponseMessage, error) {
 	if err := req.Recipients.validate(); err != nil {
@@ -43,6 +49,9 @@ func (s *EmailServer) SendEmail(ctx context.Context, req *SendEmailRequest) (*Re
 	}
 
 	email := mail.NewMSG()
+
+	// Add headers
+	addHeaders(email, req.GetHeaders())
 
 	// Add receivers
 	email.
@@ -112,6 +121,9 @@ func (s *EmailServer) SendEmailWithTemplate(ctx context.Context, req *SendEmailW
 
 	// forming email
 	email := mail.NewMSG()
+
+	// Add headers
+	addHeaders(email, req.GetHeaders())
 
 	// Add receivers
 	email.

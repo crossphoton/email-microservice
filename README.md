@@ -10,6 +10,7 @@ Send Standard emails with following parameters:
 - `Body` *string* - Email body
 - `ContentType` *string*: If `text/html` then HTML otherwise Plain text.
 - `Attachments` *[Attachment](#attachment)* - Attachments to be sent with email.
+- `Headers` *map(string  -> string)* - Add headers.
 
 [Example](./examples/Std.go)
 ### **SendRawEmail**
@@ -28,6 +29,7 @@ Send Templated emails (templates should exist beforehand):
 - `TemplateName` *string* - Name of the template
 - `Attachments` *[Attachment](#attachment)* - Attachments to be sent with email.
 - `TemplateParams` *map(string  -> string)* - Template data to be used in the template.
+- `Headers` *map(string  -> string)* - Add headers.
 
 [Example](./examples/Template.go)
 

@@ -4,9 +4,14 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"strings"
 )
 
 func getTemplate(templateName string) (*template.Template, error) {
+	// Santize
+	templateName = strings.ReplaceAll(templateName, "/", "")
+	templateName = strings.ReplaceAll(templateName, ".", "")
+
 	t, err := template.New(fmt.Sprintf("%s.html", templateName)).ParseFiles(fmt.Sprintf("./templates/%s.html", templateName))
 	if err != nil {
 		return nil, fmt.Errorf("invalid template: %v", err)
